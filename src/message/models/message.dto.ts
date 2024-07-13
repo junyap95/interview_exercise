@@ -6,6 +6,7 @@ import {
   registerEnumType,
 } from '@nestjs/graphql';
 import { ObjectID } from 'mongodb';
+import { MessageTag } from './message.model';
 
 export enum GifType {
   Gif = 'gif',
@@ -45,6 +46,14 @@ export class ImageDto {
   @Field()
   url: string;
 }
+
+// export enum MessageTagType {
+//   subTopic = 'subTopic',
+// }
+
+// registerEnumType(MessageTagType, {
+//   name: 'MessageTagType',
+// });
 
 export enum AttachmentType {
   PDF = 'pdf',
@@ -109,6 +118,14 @@ export class RichContentDto {
 }
 
 @InputType()
+export class MessageTagDto {
+  @Field()
+  id: string;
+  // @Field(() => MessageTagType)
+  // type: MessageTagType;
+}
+
+@InputType()
 export class MessageDto {
   @Field()
   text: string;
@@ -118,6 +135,9 @@ export class MessageDto {
 
   @Field(() => RichContentDto, { nullable: true })
   richContent?: RichContentDto;
+
+  @Field(() => [MessageTagDto])
+  tags?: MessageTagDto[];
 }
 
 // TODO Min - Max on limit
