@@ -29,6 +29,10 @@ type Reaction {
   userIds: [String!]!
 }
 
+type MessageTag {
+  id: String!
+}
+
 type UserField {
   id: String
 }
@@ -99,6 +103,7 @@ type ChatMessage {
   richContent: RichMessageContent
   reactions: [Reaction!]
   isSenderBlocked: Boolean
+  tags: [MessageTag!]
 }
 
 """
@@ -155,6 +160,7 @@ type Mutation {
   resolveConversationMessage(resolveMessageDto: ResolveMessageDto!): ChatMessage!
   unresolveConversationMessage(resolveMessageDto: ResolveMessageDto!): ChatMessage!
   likeConversationMessage(likeMessageDto: LikeMessageDto!): ChatMessage!
+  updateMessageTags(updateMessageTagsDto: UpdateMessageTagsDto!): ChatMessage!
   unlikeConversationMessage(likeMessageDto: LikeMessageDto!): ChatMessage!
   addReactionToMessage(reactionDto: ReactionDto!): ChatMessage!
   removeReactionFromMessage(reactionDto: ReactionDto!): ChatMessage!
@@ -181,7 +187,7 @@ input MessageDto {
   text: String!
   conversationId: ObjectId!
   richContent: RichContentDto
-  tags: [MessageTagDto!]!
+  tags: [MessageTagDto!]
 }
 
 input RichContentDto {
@@ -242,6 +248,12 @@ input ResolveMessageDto {
 
 input LikeMessageDto {
   userId: ObjectId!
+  messageId: ObjectId!
+  conversationId: ObjectId!
+}
+
+input UpdateMessageTagsDto {
+  tags: [MessageTagDto!]!
   messageId: ObjectId!
   conversationId: ObjectId!
 }

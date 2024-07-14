@@ -33,6 +33,23 @@ export const getChatConversationMessages = gql`
   }
 `;
 
+export const updateMessageTags = gql`
+  mutation ($updateMessageTagsDto: UpdateMessageTagsDto!) {
+    updateMessageTags(updateMessageTagsDto: $updateMessageTagsDto) {
+      id
+      text
+      created
+      deleted
+      sender {
+        id
+      }
+      tags {
+        id
+      }
+    }
+  }
+`;
+
 export const deleteConversationMessage = gql`
   mutation ($deleteMessageDto: DeleteMessageDto!) {
     deleteConversationMessage(deleteMessageDto: $deleteMessageDto) {

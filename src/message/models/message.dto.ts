@@ -6,7 +6,6 @@ import {
   registerEnumType,
 } from '@nestjs/graphql';
 import { ObjectID } from 'mongodb';
-import { MessageTag } from './message.model';
 
 export enum GifType {
   Gif = 'gif',
@@ -121,8 +120,18 @@ export class RichContentDto {
 export class MessageTagDto {
   @Field()
   id: string;
-  // @Field(() => MessageTagType)
-  // type: MessageTagType;
+}
+
+@InputType()
+export class UpdateMessageTagsDto {
+  @Field(() => [MessageTagDto])
+  tags: MessageTagDto[];
+
+  @Field(() => ObjectID)
+  messageId: ObjectID;
+
+  @Field(() => ObjectID)
+  conversationId: ObjectID;
 }
 
 @InputType()
@@ -136,7 +145,7 @@ export class MessageDto {
   @Field(() => RichContentDto, { nullable: true })
   richContent?: RichContentDto;
 
-  @Field(() => [MessageTagDto])
+  @Field(() => [MessageTagDto], { nullable: true })
   tags?: MessageTagDto[];
 }
 

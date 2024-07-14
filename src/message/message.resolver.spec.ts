@@ -12,6 +12,7 @@ import {
   LikeMessageDto,
   ReactionDto,
   PollDto,
+  UpdateMessageTagsDto,
 } from './models/message.dto';
 import { ObjectID } from 'mongodb';
 import { IAuthenticatedUser } from '../authentication/jwt.strategy';
@@ -174,6 +175,13 @@ describe('MessageResolver', () => {
         messages: chatMessage,
         hasMore: false,
       });
+    }
+
+    updateMessageTags(
+      updateMessageTagsDto: UpdateMessageTagsDto,
+      authenticatedUser?: IAuthenticatedUser,
+    ): Promise<ChatMessage> {
+      return Promise.resolve(chatMessage);
     }
 
     addReactionToMessage(
@@ -474,6 +482,29 @@ describe('MessageResolver', () => {
           messageId,
         },
         { accountRole: 'admin', userId },
+      );
+    });
+  });
+
+  describe('update a message tags', () => {
+    it('should update the tags of a message', () => {
+      jest.spyOn(messageLogic, 'updateMessageTags');
+
+      const tagsArr = [{ id: 'tag1' }, { id: 'tag2' }];
+
+      const updateMessageTagsDto: UpdateMessageTagsDto = {
+        messageId,
+        conversationId,
+        tags: tagsArr,
+      };
+
+      resolver.updateMessageTags(updateMessageTagsDto, authenticatedUser);
+      expect(messageLogic.updateMessageTags).toBeCalledWith(
+        updateMessageTagsDto,
+        {
+          accountRole: 'admin',
+          userId,
+        },
       );
     });
   });

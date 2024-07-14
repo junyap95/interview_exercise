@@ -13,6 +13,7 @@ import {
   ResolveMessageDto,
   ReactionDto,
   PollOptionDto,
+  UpdateMessageTagsDto,
 } from './models/message.dto';
 import { MessageData } from './message.data';
 import { IAuthenticatedUser } from '../authentication/jwt.strategy';
@@ -29,6 +30,7 @@ import {
   UnresolveMessageEvent,
   ReactedMessageEvent,
   UnReactedMessageEvent,
+  UpdateMessageTagsEvent,
 } from '../conversation/conversation-channel.socket';
 import { UserService } from '../user/user.service';
 import { ConversationData } from '../conversation/conversation.data';
@@ -278,7 +280,6 @@ export class MessageLogic implements IMessageLogic {
     return blockedUsers.map((user) => user.blockedUserId);
   }
 
-
   async getChatConversationMessages(
     getMessageDto: GetMessageDto,
     authenticatedUser: IAuthenticatedUser,
@@ -313,7 +314,6 @@ export class MessageLogic implements IMessageLogic {
       paginatedChatMessages,
       blockedUserIds,
     );
-  
 
     return paginatedChatMessages;
   }
@@ -506,6 +506,34 @@ export class MessageLogic implements IMessageLogic {
     if (!result) {
       throw new ForbiddenError('User is not authorised to perform this action');
     }
+  }
+
+  async updateMessageTags(
+    updateMessageTagsDto: UpdateMessageTagsDto,
+    authenticatedUser: IAuthenticatedUser,
+  ): Promise<ChatMessage> {
+    await this.throwForbiddenErrorIfNotAuthorized(
+      authenticatedUser,
+      updateMessageTagsDto.messageId,
+      Action.readConversation,
+    );
+
+    const message = await this.messageData.updateMessageTags(
+      updateMessageTagsDto.tags,
+      updateMessageTagsDto.messageId,
+    );
+
+    const updateMessageTagsEvent = new UpdateMessageTagsEvent({
+      userId: authenticatedUser.userId,
+      messageId: updateMessageTagsDto.messageId,
+      tags: updateMessageTagsDto.tags,
+    });
+    this.conversationChannel.send(
+      updateMessageTagsEvent,
+      updateMessageTagsDto.conversationId.toHexString(),
+    );
+
+    return message;
   }
 
   async addReactionToMessage(

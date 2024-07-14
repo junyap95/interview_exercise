@@ -8,6 +8,7 @@ import {
   GifType,
   MessageDto,
   PollDto,
+  UpdateMessageTagsDto,
 } from './models/message.dto';
 import {
   ConversationChannel,
@@ -19,6 +20,7 @@ import {
   UnReactedMessageEvent,
   UnlikeMessageEvent,
   UnresolveMessageEvent,
+  UpdateMessageTagsEvent,
 } from '../conversation/conversation-channel.socket';
 import { PermissionsService } from '../permissions/permissions.service';
 import { ObjectID, ObjectId } from 'mongodb';
@@ -32,7 +34,7 @@ import {
   ContextType,
   Product,
 } from '../conversation/models/ContextSchema.dto';
-import { ChatMessageModel } from './models/message.model';
+import { ChatMessageModel, MessageTag } from './models/message.model';
 import { SafeguardingService } from '../safeguarding/safeguarding.service';
 import {
   IUserBlocksLogic,
@@ -385,6 +387,13 @@ describe('MessageLogic', () => {
       };
     }
 
+    updateMessageTags(tags: MessageTag[], messageId: ObjectID) {
+      return Promise.resolve({
+        ...this.getMockMessage(messageId.toHexString(), senderId.toHexString()),
+        tags,
+      });
+    }
+
     addReaction(
       reaction: string,
       userId: ObjectID,
@@ -549,7 +558,6 @@ describe('MessageLogic', () => {
   class MockConversationChannel {
     send = jest.fn();
   }
-
 
   class MockUserBlocksLogic implements IUserBlocksLogic {
     getBlockedUsers(
@@ -1233,6 +1241,60 @@ describe('MessageLogic', () => {
         USER_ID_BLOCKED.toHexString(),
       );
       expect(messages.messages[1].isSenderBlocked).toEqual(true);
+    });
+  });
+
+  describe('update message tag', () => {
+    it('can update tags of a message and data/ send event called', async () => {
+      jest.spyOn(messageData, 'updateMessageTags');
+      const tagsArr = [{ id: 'tag1' }, { id: 'tag2' }];
+      await messageLogic.updateMessageTags(
+        {
+          messageId,
+          conversationId,
+          tags: tagsArr,
+        },
+        validUser,
+      );
+
+      const event = new UpdateMessageTagsEvent({
+        userId: validUser.userId,
+        messageId,
+        tags: tagsArr,
+      });
+
+      expect(conversationChannel.send).toHaveBeenCalledWith(
+        event,
+        conversationId.toHexString(),
+      );
+      expect(messageData.updateMessageTags).toHaveBeenCalledTimes(1);
+    });
+
+    it('can un-react to a message  and data/ send event called', async () => {
+      jest.spyOn(messageData, 'removeReaction');
+      await messageLogic.removeReactionFromMessage(
+        {
+          messageId,
+          conversationId,
+          reaction: ':like',
+          reactionUnicode: ':likecode',
+        },
+        validUser,
+      );
+
+      const event = new UnReactedMessageEvent({
+        userId: validUser.userId,
+        messageId,
+        reaction: ':like',
+        reactionUnicode: ':likecode',
+      });
+
+      expect(conversationChannel.send).toHaveBeenCalledWith(
+        event,
+        conversationId.toHexString(),
+      );
+
+      expect(messageData.removeReaction).toHaveBeenCalledTimes(1);
     });
   });
 

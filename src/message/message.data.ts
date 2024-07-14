@@ -5,6 +5,7 @@ import {
   ChatMessageDocument,
   chatMessageToObject,
   ChatMessageModel,
+  MessageTag,
 } from './models/message.model';
 import { ChatMessage, PaginatedChatMessages } from './models/message.entity';
 import { MessageDto, GetMessageDto } from './models/message.dto';
@@ -168,6 +169,20 @@ export class MessageData {
     );
     if (!unlike) throw new Error('The message to unlike does not exist');
     return chatMessageToObject(unlike);
+  }
+
+  async updateMessageTags(
+    tags: MessageTag[],
+
+    messageId: ObjectID,
+  ) {
+    const result = await this.chatMessageModel.findOneAndUpdate(
+      { _id: messageId },
+      { $set: { tags } },
+      { new: true },
+    );
+    if (!result) throw new Error('Could not update tags on message');
+    return chatMessageToObject(result);
   }
 
   async addReaction(

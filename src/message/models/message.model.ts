@@ -115,6 +115,7 @@ export class Reaction {
 }
 
 @Schema()
+@ObjectType()
 export class MessageTag {
   @Prop({ type: String })
   id: string;
